@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoChime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* スタイルは前回と同じなので省略します */
+        html.dark body { background-color: #1f2937; color: #d1d5db; }
+        html.dark .container { background-color: rgba(55, 65, 81, 0.95); border: 1px solid #4b5563; }
+        html.dark .time-display { color: #7dd3fc; }
+        html.dark .erinn-time-display { color: #9ca3af; }
+        html.dark .status-message { color: #d1d5db; }
+        html.dark .main-settings-section { border-top-color: #374151; }
+        html.dark .main-settings-section label { color: #d1d5db; }
+        html.dark .settings-modal-content { background-color: #374151; }
+        html.dark .settings-modal-content .modal-title { color: #f3f4f6; }
+        html.dark .settings-modal-content label { color: #d1d5db; }
+        html.dark .settings-modal-content select, html.dark .settings-modal-content input[type="range"], html.dark .settings-modal-content input[type="file"] { background-color: #4b5563; border-color: #6b7280; color: #f3f4f6; }
+        html.dark .settings-modal-content input[type="file"]::-webkit-file-upload-button { background-color: #6b7280; color: #f3f4f6; border-color: #4b5563; }
+        html.dark #removeBackgroundImageButton { background-color: #7f1d1d; color: #fecaca; border-color: #991b1b;}
+        html.dark #removeBackgroundImageButton:hover { background-color: #991b1b; }
+        html.dark .input-status-msg { color: #9ca3af; }
+        html.dark hr { border-color: #4b5563 !important; }
+        html.dark .modal-close-button { color: #9ca3af; } html.dark .modal-close-button:hover { color: #e5e7eb; }
+        body {font-family:'Inter',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f0f9ff;color:#1f2937;margin:0;padding:1rem;box-sizing:border-box;transition:background-color .5s ease,background-image .5s ease, color .5s ease;background-size:cover;background-position:center;background-repeat:no-repeat}
+        .container {background-color:rgba(255,255,255,.93);backdrop-filter:blur(8px);padding:2rem;border-radius:.85rem;box-shadow:0 12px 20px -4px rgba(0,0,0,.12),0 5px 8px -3px rgba(0,0,0,.08);text-align:center;width:100%;max-width:550px; position: relative; transition: background-color 0.5s ease, border-color 0.5s ease;}
+        .time-display {font-size:2.8rem;font-weight:700;margin-bottom:.5rem;color:#075985; transition: font-size 0.3s ease, color 0.5s ease;}
+        .erinn-time-display {font-size:.9rem;color:#475569;margin-bottom:1rem;min-height:1.2em; cursor: pointer; user-select: none; transition: color 0.5s ease;}
+        .status-message {font-size:1.05rem;margin-bottom:1.25rem;min-height:2.1em;color:#374151; transition: color 0.5s ease;}
+        .controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;}
+        .controls button {padding:.7rem 1.4rem;border-radius:.5rem;font-size:.95rem;font-weight:500;cursor:pointer;transition:background-color .2s,transform .1s;}
+        .toggle-notify-button.active { background-color: #ef4444; color: white; }
+        .toggle-notify-button.active:hover { background-color: #dc2626; }
+        .toggle-notify-button.inactive { background-color: #10b981; color: white; }
+        .toggle-notify-button.inactive:hover { background-color: #059669; }
+        .preview-button {background-color:#6366f1;color:white}.preview-button:hover:not(:disabled){background-color:#4f46e5}
+        .settings-open-button { background-color: #52525b; color:white; } .settings-open-button:hover:not(:disabled) { background-color: #3f3f46; }
+        .controls button:disabled {background-color:#9ca3af;cursor:not-allowed;opacity:.7}.controls button:active:not(:disabled){transform:scale(.96)}
+        .main-settings-section { margin-top: 1.5rem; text-align: left; border-top: 1px solid #e0e7ff; padding-top: 1.5rem; transition: border-color 0.5s ease; }
+        .main-settings-section label {display:block;margin-bottom:.4rem;font-weight:500;color:#4b5563;font-size:.9rem; transition: color 0.5s ease;}
+        .main-settings-section select, .main-settings-section input[type="range"] {width:100%;padding:.6rem;border:1px solid #cbd5e1;border-radius:.375rem;box-sizing:border-box;margin-bottom:.8rem }
+        .main-settings-section input[type="range"] { padding: 0; height: auto; margin-top: 0.25rem; }
+        .input-status-msg {font-size:.8rem;color:#64748b;margin-top:-.5rem;margin-bottom:.8rem;min-height:1.1em; transition: color 0.5s ease;}
+        .modal {position:fixed;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.55);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .3s ease, visibility .3s ease;}
+        .modal.active {opacity:1;visibility:visible;}
+        .modal-content-wrapper {background-color:white;padding:1.5rem 2rem 2rem 2rem;border-radius:.75rem;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);text-align:left;max-width:90%;width:480px;position:relative; transition: background-color 0.5s ease;}
+        .modal-title {font-size:1.5rem;font-weight:600;margin-bottom:1.5rem;color:#1e293b; text-align: center; transition: color 0.5s ease;}
+        .modal-close-button {position:absolute;top:0.75rem;right:0.75rem;background:transparent;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;padding:0.25rem; transition: color 0.5s ease;}
+        .modal-close-button:hover {color:#1e293b;}
+        .settings-modal-content label {display:block;margin-bottom:.5rem;font-weight:500;color:#334155; transition: color 0.5s ease;}
+        .settings-modal-content select, .settings-modal-content input[type="file"], .settings-modal-content input[type="range"] { width:100%;padding:.6rem;border:1px solid #d1d5db;border-radius:.375rem;margin-bottom:1rem; transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease; }
+        .settings-modal-content input[type="range"] { padding: 0; height: auto; margin-top: 0.25rem; }
+        .settings-modal-content .input-status-msg {font-size:.8rem;color:#64748b;margin-top:-.75rem;margin-bottom:1rem;min-height:1.1em; transition: color 0.5s ease;}
+        #removeBackgroundImageButton{color:#b91c1c;border:1px solid #fecaca;padding:.375rem .75rem;font-size:.875rem;border-radius:.375rem;cursor:pointer;transition:background-color .2s, color .2s, border-color .2s;margin-top:.25rem;background-color:#fee2e2}
+        #removeBackgroundImageButton:hover{background-color:#fecaca}
+        .time-select-group{margin-bottom:1rem}
+        .sound-settings-group{margin-bottom:1rem}
+        .sound-settings-group .flex-container{display:flex;align-items:center;gap:.5rem}.sound-settings-group .flex-container select{flex-grow:1}
+        #showErinnTimeButton {position:fixed;bottom:1rem;right:1rem;padding:.5rem .75rem;font-size:.8rem;background-color:#38bdf8;color:white;border-radius:.375rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);cursor:pointer;z-index:900}
+        #showErinnTimeButton:hover {background-color:#0ea5e9;}
+        .toggle-label { display: flex; align-items: center; cursor: pointer; }
+        .toggle-checkbox { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+        .toggle-switch { position: relative; display: inline-block; width: 2.75rem; height: 1.5rem; background-color: #e5e7eb; border-radius: 9999px; transition: background-color 0.2s ease-in-out; }
+        html.dark .toggle-switch { background-color: #4b5563; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1.25rem; height: 1.25rem; background-color: white; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s ease-in-out; }
+        .toggle-checkbox:checked + .toggle-switch { background-color: #0ea5e9; }
+        html.dark .toggle-checkbox:checked + .toggle-switch { background-color: #38bdf8; }
+        .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(1.25rem); }
+        .toggle-text { margin-left: 0.75rem; font-size: 0.875rem; font-medium; color: #1f2937; }
+        html.dark .toggle-text { color: #d1d5db; }
+        /* バージョン情報表示用のスタイル */
+        .app-version { position: fixed; bottom: 0.5rem; right: 0.5rem; font-size: 0.7rem; color: #6b7280; z-index: 1001; }
+        html.dark .app-version { color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-3 text-sky-700">ChronoChime</h1>
+        <div id="timeDisplay" class="time-display">00:00:00</div>
+        <div id="erinnTimeDisplay" class="erinn-time-display" title="クリックでエリンタイムを非表示">エリンタイム: 計算中...</div>
+        <div id="statusMessage" class="status-message">通知は実行中です。</div>
+        <div class="controls">
+            <button id="toggleNotifyStateButton" class="toggle-notify-button active controls-button">通知を一時停止</button>
+            <button id="previewSoundButton" class="preview-button controls-button">サウンドプレビュー</button>
+            <button id="openSettingsButton" class="settings-open-button controls-button">⚙️ 設定</button>
+        </div>
+        <div class="main-settings-section">
+            <div class="grid grid-cols-3 gap-3 time-select-group">
+                <div><label for="notifyTime1">🕒 通知時刻1:</label><select id="notifyTime1" class="setting-input"></select></div>
+                <div><label for="notifyTime2">🕒 通知時刻2:</label><select id="notifyTime2" class="setting-input"></select></div>
+                <div><label for="notifyTime3">🕒 通知時刻3:</label><select id="notifyTime3" class="setting-input"></select></div>
+            </div>
+            <hr class="my-4">
+            <div>
+                <label for="volumeControl">🔊 音量調節 (<span id="volumeValueDisplay">80</span>%):</label>
+                <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.8" class="setting-input">
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationModal" class="modal">
+        <div class="modal-content-wrapper notification-modal-content">
+             <button id="closeNotificationModalBtn" class="modal-close-button">&times;</button>
+            <h2 id="modalTitle" class="modal-title">通知</h2>
+            <p id="modalCustomMessage">時間です！</p>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content-wrapper settings-modal-content">
+            <button id="closeSettingsModalBtn" class="modal-close-button">&times;</button> <h2 class="modal-title">⚙️ アプリ設定</h2>
+            <div><label for="fontSizeSelect">メイン時計フォントサイズ:</label><select id="fontSizeSelect" class="setting-input"><option value="2rem">小</option><option value="2.8rem" selected>中 (デフォルト)</option><option value="3.5rem">大</option><option value="4.2rem">特大</option></select></div>
+            <hr class="my-3">
+            <div class="sound-settings-group"><label for="soundChoice">🎵 通知音選択:</label><div class="flex-container"><select id="soundChoice" class="setting-input"><option value="default_beep">デフォルトビープ</option><option value="chime">キラキラチャイム</option><option value="digital_blip">デジタルピップ</option><option value="rising_tone">ふんわり上昇音</option><option value="use_custom_file">カスタムファイルを使用</option></select></div><input type="file" id="customSoundFileInput" accept="audio/*" class="mt-2 setting-input" style="display:none"><p id="customSoundStatus" class="input-status-msg"></p></div>
+            <hr class="my-3">
+            <div><label for="backgroundImageInput">🖼️ 背景画像:</label><input type="file" id="backgroundImageInput" accept="image/*" class="setting-input"><button id="removeBackgroundImageButton" class="mt-1">背景画像を削除</button><p id="backgroundImageStatus" class="input-status-msg"></p></div>
+            <hr class="my-3">
+            <div><label class="toggle-label" for="erinnTimeDisplayMasterToggle"><input type="checkbox" id="erinnTimeDisplayMasterToggle" class="toggle-checkbox setting-input"><div class="toggle-switch"></div><span class="toggle-text">エリンタイムを表示する</span></label></div>
+            <hr class="my-3">
+            <div><label class="toggle-label" for="darkModeToggle"><input type="checkbox" id="darkModeToggle" class="toggle-checkbox setting-input"><div class="toggle-switch"></div><span class="toggle-text">ダークモード</span></label></div>
+        </div>
+    </div>
+    <button id="showErinnTimeButton" class="hidden">エリン時計再表示</button>
+    <div class="app-version">v1.0</div>
+
+    <script>
+        // DOM要素
+        const erinnTimeDisplay = document.getElementById('erinnTimeDisplay');
+        const showErinnTimeButton = document.getElementById('showErinnTimeButton');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const statusMessage = document.getElementById('statusMessage');
+        const toggleNotifyStateButton = document.getElementById('toggleNotifyStateButton');
+        const previewSoundButton = document.getElementById('previewSoundButton');
+        const openSettingsButton = document.getElementById('openSettingsButton');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettingsModalButton = document.getElementById('closeSettingsModalBtn');
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const erinnTimeDisplayMasterToggle = document.getElementById('erinnTimeDisplayMasterToggle');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const notifyTime1Select = document.getElementById('notifyTime1');
+        const notifyTime2Select = document.getElementById('notifyTime2');
+        const notifyTime3Select = document.getElementById('notifyTime3');
+        const soundChoiceDropdown = document.getElementById('soundChoice');
+        const customSoundFileInput = document.getElementById('customSoundFileInput');
+        const customSoundStatus = document.getElementById('customSoundStatus');
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeValueDisplay = document.getElementById('volumeValueDisplay');
+        const backgroundImageInput = document.getElementById('backgroundImageInput');
+        const backgroundImageStatus = document.getElementById('backgroundImageStatus');
+        const removeBackgroundImageButton = document.getElementById('removeBackgroundImageButton');
+        const notificationModal = document.getElementById('notificationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalCustomMessage = document.getElementById('modalCustomMessage');
+        const closeNotificationModalButton = document.getElementById('closeNotificationModalBtn');
+
+        let isNotificationActive = true;
+        let customAudio = null; let lastNotifiedMinute = -1;
+        let activeNotificationMinutes = []; let currentMasterVolume = 0.8; let modalAutoCloseTimeout = null;
+        const DEFAULT_BACKGROUND_COLOR = '#f0f9ff';
+
+        const REAL_SECONDS_PER_ERIN_MINUTE_SIMPLE = 1.5;
+        const ERIN_MINUTES_IN_DAY_CYCLE_SIMPLE = 24 * 60;
+
+        function saveData(key,value){try{localStorage.setItem(key,value);console.log(`DEBUG: LS 保存 [${key}]`);}catch(e){console.error(`DEBUG: LS 保存エラー [${key}]`,e);alert(`設定保存失敗 (${key})`);}}
+        function loadData(key){const d=localStorage.getItem(key);console.log(`DEBUG: LS 読込 [${key}], 値あり: ${d!=null}`);return d;}
+        function removeData(key){localStorage.removeItem(key);console.log(`DEBUG: LS 削除 [${key}]`);}
+
+        async function initializeAudioContext(){
+            console.log("DEBUG: initializeAudioContext呼び出し。現在のAudioContext状態:", Tone.context.state);
+            if(Tone.context.state!=='running'){
+                try{
+                    await Tone.start();
+                    console.log("DEBUG: AudioContext開始成功 (initializeAudioContext経由)");
+                    Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);
+                } catch(e) {
+                    console.error("DEBUG: AudioContext開始エラー (initializeAudioContext内):",e);
+                    statusMessage.textContent="音声の開始に失敗しました。ページ上のどこかをクリックしてから、もう一度お試しください。";
+                }
+            } else {
+                console.log("DEBUG: AudioContextは既に実行中です (initializeAudioContext確認時)。");
+                if (Tone.Destination.volume) {
+                    Tone.Destination.volume.value = Tone.gainToDb(currentMasterVolume);
+                }
+            }
+        }
+
+        function populateTimeSelect(selectElement, selectIdName) {
+            if (!selectElement) {
+                console.error(`DEBUG ALERT: populateTimeSelect - select要素が見つかりません！ ID: ${selectIdName}`);
+                return;
+            }
+            console.log(`DEBUG: populateTimeSelect 開始 - 要素ID: ${selectElement.id}`);
+            selectElement.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "指定なし";
+            selectElement.appendChild(defaultOption);
+            let optionsAdded = 0;
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = String(i).padStart(2, '0') + " 分";
+                selectElement.appendChild(option);
+                optionsAdded++;
+            }
+            console.log(`DEBUG: populateTimeSelect 完了 - 要素ID: ${selectElement.id}, 追加オプション数(指定なし含む): ${optionsAdded + 1}, プルダウン内の選択肢総数: ${selectElement.options.length}`);
+            if (selectElement.options.length <= 1) {
+                console.error(`DEBUG ALERT: populateTimeSelect - ${selectElement.id} に時刻オプションが実質的に追加されていません！`);
+            }
+        }
+
+        function updateNotificationUIState(isActive) {
+            if (isActive) {
+                toggleNotifyStateButton.textContent = "通知を一時停止";
+                toggleNotifyStateButton.classList.remove('inactive', 'bg-green-500', 'hover:bg-green-600');
+                toggleNotifyStateButton.classList.add('active', 'bg-red-500', 'hover:bg-red-600');
+                if (activeNotificationMinutes.length > 0) {
+                    statusMessage.textContent = `通知実行中: 毎時 ${activeNotificationMinutes.join(', ')} 分`;
+                } else {
+                    statusMessage.textContent = "通知実行中: 有効な通知時刻がありません。";
+                }
+            } else {
+                toggleNotifyStateButton.textContent = "通知を再開";
+                toggleNotifyStateButton.classList.remove('active', 'bg-red-500', 'hover:bg-red-600');
+                toggleNotifyStateButton.classList.add('inactive', 'bg-green-500', 'hover:bg-green-600');
+                statusMessage.textContent = "通知は一時停止中です。";
+            }
+            console.log(`DEBUG: 通知UI状態更新 -> ${isActive ? '実行中' : '一時停止中'}`);
+        }
+
+        function loadSettings() {
+            console.log("DEBUG: --- loadSettings 開始 ---");
+            const savedTimesRaw=loadData('notificationTimesV2');
+            if(savedTimesRaw){try{const tA=JSON.parse(savedTimesRaw);if(Array.isArray(tA)&&tA.length===3){notifyTime1Select.value=tA[0]||"";notifyTime2Select.value=tA[1]||"";notifyTime3Select.value=tA[2]||"";console.log("DEBUG:LS 時刻適用",tA);}else{console.warn("DEBUG:LS notificationTimesV2形式/長さ不正:",tA);}}catch(e){console.error("DEBUG:LS 通知時刻解析エラー:",e,"Raw:",savedTimesRaw);}}else{console.log("DEBUG:LS notificationTimesV2なし");}
+
+            currentMasterVolume=parseFloat(loadData('masterVolume'))||0.8;volumeControl.value=currentMasterVolume;volumeValueDisplay.textContent=Math.round(currentMasterVolume*100);if(Tone.context.state==='running'&&Tone.Destination.volume)Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);
+            soundChoiceDropdown.value=loadData('soundChoice')||'default_beep';
+            toggleCustomSoundInputVisibility();
+            const sBI=loadData('backgroundImageURL');if(sBI){document.body.style.backgroundImage=`url('${sBI}')`;document.body.style.backgroundColor='';backgroundImageStatus.textContent="保存背景適用済";}else{document.body.style.backgroundImage='';document.body.style.backgroundColor=DEFAULT_BACKGROUND_COLOR;backgroundImageStatus.textContent="";}
+            const sSU=loadData('customSoundURL');const sSN=loadData('customSoundName');if(sSU){try{customAudio=new Audio(sSU);if(customAudio)customAudio.volume=currentMasterVolume;customSoundStatus.textContent=`読み込み済: ${sSN||'保存音源'}`;}catch(e){customSoundStatus.textContent="保存音源読込エラー";}}else{customSoundStatus.textContent=soundChoiceDropdown.value==='use_custom_file'?"カスタムファイルを選択":"アプリ内蔵サウンドを選択中";}
+            const savedFontSize=loadData('mainClockFontSize')||'2.8rem';fontSizeSelect.value=savedFontSize;applyFontSize(savedFontSize);
+            const darkModeEnabled=loadData('darkModeEnabled')==='true';darkModeToggle.checked=darkModeEnabled;applyDarkMode(darkModeEnabled);
+            const erinnTimeMasterShow=loadData('erinnTimeMasterShow')!=='false';erinnTimeDisplayMasterToggle.checked=erinnTimeMasterShow;updateErinnTimeVisibilitySystem(erinnTimeMasterShow);
+            if(erinnTimeMasterShow){const iTH=loadData('erinnTimeTempHidden')==='true';if(iTH){erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.remove('hidden');}else{erinnTimeDisplay.classList.remove('hidden');showErinnTimeButton.classList.add('hidden');}}
+
+            const notificationsPaused = loadData('appNotificationsPaused') === 'true';
+            isNotificationActive = !notificationsPaused;
+            activeNotificationMinutes = parseSelectedNotificationTimes();
+            updateNotificationUIState(isNotificationActive);
+
+            console.log("DEBUG: --- loadSettings 完了 ---");
+        }
+
+        function saveNotificationTimes(){const tS=[notifyTime1Select.value,notifyTime2Select.value,notifyTime3Select.value];saveData('notificationTimesV2',JSON.stringify(tS));activeNotificationMinutes=parseSelectedNotificationTimes();if(isNotificationActive)updateNotificationUIState(true);}
+        function getSimpleErinnTime(){const n=new Date();const rS=n.getTime()/1000;const tEM=Math.floor(rS/REAL_SECONDS_PER_ERIN_MINUTE_SIMPLE);const eTMT=tEM%ERIN_MINUTES_IN_DAY_CYCLE_SIMPLE;const h=Math.floor(eTMT/60);const m=eTMT%60;return{hourPadded:String(h).padStart(2,'0'),minutePadded:String(m).padStart(2,'0')};}
+        function updateTime(){const n=new Date();timeDisplay.textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;if(erinnTimeDisplayMasterToggle.checked&&!erinnTimeDisplay.classList.contains('hidden')){const e=getSimpleErinnTime();erinnTimeDisplay.textContent=`エリンタイム: ${e.hourPadded}:${e.minutePadded}`;};if(isNotificationActive){checkNotificationTime(n.getMinutes(),n.getSeconds());}}
+        async function checkNotificationTime(m,s){if(activeNotificationMinutes.includes(m)&&s===0&&lastNotifiedMinute!==m){await showNotification();playSound();lastNotifiedMinute=m;}else if(!activeNotificationMinutes.includes(m)){lastNotifiedMinute=-1;}}
+        function parseSelectedNotificationTimes(){const t=[notifyTime1Select.value,notifyTime2Select.value,notifyTime3Select.value].map(v=>parseInt(v,10)).filter(v=>!isNaN(v)&&v>=0&&v<=59);return t.length>0?[...new Set(t)].sort((a,b)=>a-b):[];}
+        function playDefaultBeepSound(){const s=new Tone.Synth().toDestination();s.triggerAttackRelease("C4","0.2s");}
+        function playChimeSound(){const s=new Tone.PolySynth(Tone.Synth,{oscillator:{type:"triangle8"},envelope:{attack:0.005,decay:0.1,sustain:0.3,release:1}}).toDestination();s.triggerAttackRelease(["C5","E5","G5"],"0.4s");}
+        function playDigitalBlipSound(){const s=new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0,release:0.1}}).toDestination();s.triggerAttackRelease("A5","0.05s",Tone.now(),.8);s.triggerAttackRelease("D6","0.05s",Tone.now()+.07,.6);}
+        function playRisingToneSound(){const s=new Tone.Synth({oscillator:{type:"sine"},envelope:{attack:0.1,decay:0.2,sustain:0.3,release:0.5}}).toDestination();s.frequency.setValueAtTime("C4",Tone.now());s.frequency.linearRampToValueAtTime("G4",Tone.now()+.4);s.triggerAttackRelease("0.5s");}
+        function playSound(){console.log("DEBUG: playSound 開始, 選択:",soundChoiceDropdown.value,"AudioContext状態:",Tone.context.state);if(Tone.context.state!=='running'&&soundChoiceDropdown.value!=='use_custom_file'){console.warn("DEBUG: playSound - Tone.jsコンテキスト未実行");statusMessage.textContent="音声再生準備未完了。";return;}const sS=soundChoiceDropdown.value;if(sS==='use_custom_file'){if(customAudio&&customAudio.src){customAudio.volume=currentMasterVolume;customAudio.currentTime=0;customAudio.play().catch(e=>console.error("DEBUG: カスタム音源再生エラー:",e));}else{playDefaultBeepSound();}}else{if(Tone.context.state==='running'){if(Tone.Destination.volume)Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);switch(sS){case'chime':playChimeSound();break;case'digital_blip':playDigitalBlipSound();break;case'rising_tone':playRisingToneSound();break;case'default_beep':default:playDefaultBeepSound();break;}}else{console.warn("DEBUG: playSound - Tone.jsサウンドだがコンテキスト未実行");statusMessage.textContent="音声再生準備できていません。";}}}
+        function toggleCustomSoundInputVisibility(){const iC=soundChoiceDropdown.value==='use_custom_file';customSoundFileInput.style.display=iC?'block':'none';if(iC){customSoundStatus.textContent=customAudio&&customAudio.src?`読み込み済: ${loadData('customSoundName')||'保存音源'}`:"カスタムファイルを選択";}else{customSoundStatus.textContent="アプリ内蔵サウンドを選択中";}}
+        async function showNotification(){const fM="時間になりました！";modalTitle.textContent=`通知 (${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')})`;modalCustomMessage.textContent=fM;notificationModal.classList.add('active');if(modalAutoCloseTimeout)clearTimeout(modalAutoCloseTimeout);modalAutoCloseTimeout=setTimeout(()=>{if(notificationModal.classList.contains('active')){hideNotification();}},30000);}
+        function hideNotification(){if(modalAutoCloseTimeout){clearTimeout(modalAutoCloseTimeout);modalAutoCloseTimeout=null;}notificationModal.classList.remove('active');}
+        function applyFontSize(s){if(!s)return;timeDisplay.style.fontSize=s;console.log(`DEBUG:フォント ${s}`);}
+        function applyDarkMode(e){if(e){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}console.log(`DEBUG:ダークモード ${e?'有効':'無効'}`);}
+        function updateErinnTimeVisibilitySystem(mS){if(mS){const iTH=loadData('erinnTimeTempHidden')==='true';if(iTH){erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.remove('hidden');}else{erinnTimeDisplay.classList.remove('hidden');showErinnTimeButton.classList.add('hidden');}}else{erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.add('hidden');}if(mS&&!erinnTimeDisplay.classList.contains('hidden'))updateTime();}
+
+        openSettingsButton.addEventListener('click',()=>settingsModal.classList.add('active'));
+        closeSettingsModalButton.addEventListener('click',()=>settingsModal.classList.remove('active'));
+        fontSizeSelect.addEventListener('change',function(){const nS=this.value;applyFontSize(nS);saveData('mainClockFontSize',nS);});
+        darkModeToggle.addEventListener('change',function(){applyDarkMode(this.checked);saveData('darkModeEnabled',this.checked.toString());});
+        erinnTimeDisplayMasterToggle.addEventListener('change',function(){const mS=this.checked;saveData('erinnTimeMasterShow',mS.toString());updateErinnTimeVisibilitySystem(mS);});
+        erinnTimeDisplay.addEventListener('click',()=>{if(!erinnTimeDisplayMasterToggle.checked)return;erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.remove('hidden');saveData('erinnTimeTempHidden','true');});
+        showErinnTimeButton.addEventListener('click',()=>{if(!erinnTimeDisplayMasterToggle.checked)return;erinnTimeDisplay.classList.remove('hidden');showErinnTimeButton.classList.add('hidden');saveData('erinnTimeTempHidden','false');updateTime();});
+        soundChoiceDropdown.addEventListener('change',()=>{saveData('soundChoice',soundChoiceDropdown.value);toggleCustomSoundInputVisibility();});
+        volumeControl.addEventListener('input',()=>{currentMasterVolume=parseFloat(volumeControl.value);volumeValueDisplay.textContent=Math.round(currentMasterVolume*100);if(Tone.context.state==='running'&&Tone.Destination.volume)Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);if(customAudio)customAudio.volume=currentMasterVolume;saveData('masterVolume',currentMasterVolume.toString());});
+        previewSoundButton.addEventListener('click',async()=>{console.log("DEBUG: プレビューボタンクリック。");await initializeAudioContext();if(Tone.context.state==='running'||soundChoiceDropdown.value==='use_custom_file'){playSound();}else if(Tone.context.state!=='running'){statusMessage.textContent="音声再生に失敗。ページ内をクリック後再度お試しください。";console.warn("DEBUG: プレビュー失敗 - AudioContext未実行。");}});
+        notifyTime1Select.addEventListener('change',saveNotificationTimes);
+        notifyTime2Select.addEventListener('change',saveNotificationTimes);
+        notifyTime3Select.addEventListener('change',saveNotificationTimes);
+        customSoundFileInput.addEventListener('change',(e)=>{const f=e.target.files[0];if(f&&f.type.startsWith('audio/')){const r=new FileReader();r.onload=(ev)=>{if(customAudio){customAudio.pause();customAudio.src='';}customAudio=new Audio(ev.target.result);customAudio.volume=currentMasterVolume;customSoundStatus.textContent=`読み込み済: ${f.name}`;saveData('customSoundURL',ev.target.result);saveData('customSoundName',f.name);};r.onerror=()=>{customSoundStatus.textContent="音声読込失敗";removeData('customSoundURL');removeData('customSoundName');customAudio=null;};r.readAsDataURL(f);}else{customSoundStatus.textContent=f?"音声ファイルを選択":(soundChoiceDropdown.value==='use_custom_file'?"カスタムファイルを選択":"アプリ内蔵サウンドを選択中");removeData('customSoundURL');removeData('customSoundName');customAudio=null;}});
+        backgroundImageInput.addEventListener('change',(e)=>{const f=e.target.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=(ev)=>{document.body.style.backgroundImage=`url('${ev.target.result}')`;document.body.style.backgroundColor='';backgroundImageStatus.textContent=`背景設定: ${f.name}`;saveData('backgroundImageURL',ev.target.result);};r.onerror=()=>{backgroundImageStatus.textContent="画像読込失敗";removeData('backgroundImageURL');};r.readAsDataURL(f);}else{backgroundImageStatus.textContent=f?"画像ファイルを選択":"";if(!f)removeData('backgroundImageURL');}});
+        removeBackgroundImageButton.addEventListener('click',()=>{document.body.style.backgroundImage='';document.body.style.backgroundColor=DEFAULT_BACKGROUND_COLOR;backgroundImageInput.value='';backgroundImageStatus.textContent="背景画像を削除しました";removeData('backgroundImageURL');});
+        closeNotificationModalButton.addEventListener('click',hideNotification);
+
+        toggleNotifyStateButton.addEventListener('click', async () => {
+            await initializeAudioContext();
+            isNotificationActive = !isNotificationActive;
+            saveData('appNotificationsPaused', (!isNotificationActive).toString());
+            updateNotificationUIState(isNotificationActive);
+            if (isNotificationActive) {
+                activeNotificationMinutes = parseSelectedNotificationTimes();
+                if (activeNotificationMinutes.length > 0) { statusMessage.textContent = `通知実行中: 毎時 ${activeNotificationMinutes.join(', ')} 分`;}
+                else { statusMessage.textContent = "通知実行中: 有効な通知時刻がありません。"; }
+                console.log("DEBUG: 通知を再開/開始しました。");
+            } else {
+                console.log("DEBUG: 通知を一時停止しました。");
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DEBUG: DOM構築完了。初期化処理を開始します。");
+            console.log("DEBUG: notifyTimeSelect DOM要素の確認:", notifyTime1Select, notifyTime2Select, notifyTime3Select);
+            if (!notifyTime1Select || !notifyTime2Select || !notifyTime3Select) {
+                console.error("DEBUG ALERT: 時刻選択プルダウンのDOM要素がnullです。populateTimeSelectをスキップします。");
+            } else {
+                try {
+                    populateTimeSelect(notifyTime1Select, 'notifyTime1');
+                    populateTimeSelect(notifyTime2Select, 'notifyTime2');
+                    populateTimeSelect(notifyTime3Select, 'notifyTime3');
+                    console.log("DEBUG: populateTimeSelect呼び出し完了。");
+                } catch (e) {
+                    console.error("DEBUG ALERT: populateTimeSelect呼び出し中にエラー発生！", e);
+                }
+            }
+            loadSettings();
+            setInterval(updateTime, 1000);
+            updateTime();
+            console.log("DEBUG: ChronoChime (超詳細デバッグモード)、準備OK。");
+        });
+    </script>
+</body>
+</html>
