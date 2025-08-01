@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChronoChime v1.3</title>
+    <title>ChronoChime v1.5 (Monster Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* スタイルはv1.2から変更ありません */
+        /* スタイルはv1.4から一部変更 */
         html.dark body { background-color: #1f2937; color: #d1d5db; }
         html.dark .container { background-color: rgba(55, 65, 81, 0.95); border: 1px solid #4b5563; }
         html.dark .time-display { color: #7dd3fc; }
         html.dark .erinn-time-display { color: #9ca3af; }
+        /* ▼▼▼ [MODIFIED] ダークモードのモンスター表示スタイルを調整 ▼▼▼ */
+        html.dark .next-monster-display { color: #fde047; background-color: rgba(255, 255, 255, 0.05); }
         html.dark .status-message { color: #d1d5db; }
         html.dark .main-settings-section { border-top-color: #374151; }
         html.dark .main-settings-section label, html.dark .erinn-alarm-settings-container label { color: #d1d5db; }
@@ -28,10 +30,11 @@
         html.dark hr { border-color: #4b5563 !important; }
         html.dark .modal-close-button { color: #9ca3af; } html.dark .modal-close-button:hover { color: #e5e7eb; }
         html.dark .section-title { color: #67e8f9; }
-        body {font-family:'Inter',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f0f9ff;color:#1f2937;margin:0;padding:1rem;box-sizing:border-box;transition:background-color .5s ease,background-image .5s ease, color .5s ease;background-size:cover;background-position:center;background-repeat:no-repeat}
+        body {font-family:'Inter', 'Noto Sans JP', sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f0f9ff;color:#1f2937;margin:0;padding:1rem;box-sizing:border-box;transition:background-color .5s ease,background-image .5s ease, color .5s ease;background-size:cover;background-position:center;background-repeat:no-repeat}
         .container {background-color:rgba(255,255,255,.93);backdrop-filter:blur(8px);padding:2rem;border-radius:.85rem;box-shadow:0 12px 20px -4px rgba(0,0,0,.12),0 5px 8px -3px rgba(0,0,0,.08);text-align:center;width:100%;max-width:550px; position: relative; transition: background-color 0.5s ease, border-color 0.5s ease;}
         .time-display {font-size:2.8rem;font-weight:700;margin-bottom:.5rem;color:#075985; transition: font-size 0.3s ease, color 0.5s ease;}
         .erinn-time-display {font-size:.9rem;color:#475569;margin-bottom:1rem;min-height:1.2em; cursor: pointer; user-select: none; transition: color 0.5s ease;}
+        .next-monster-display {font-size: 1rem; color: #083344; margin-bottom: 1.25rem; min-height: 1.4em; font-weight: 500; transition: color 0.5s ease, background-color 0.5s ease; padding: 0.5rem; background-color: rgba(135, 206, 250, 0.1); border-radius: 0.375rem; }
         .status-message {font-size:1.05rem;margin-bottom:1.25rem;min-height:2.1em;color:#374151; transition: color 0.5s ease;}
         .controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;}
         .controls button {padding:.7rem 1.4rem;border-radius:.5rem;font-size:.95rem;font-weight:500;cursor:pointer;transition:background-color .2s,transform .1s;}
@@ -83,6 +86,9 @@
         <h1 class="text-3xl font-bold mb-3 text-sky-700">ChronoChime</h1>
         <div id="timeDisplay" class="time-display">00:00:00</div>
         <div id="erinnTimeDisplay" class="erinn-time-display" title="クリックでエリンタイムを非表示">エリンタイム: 計算中...</div>
+        
+        <div id="nextMonsterDisplay" class="next-monster-display">次のモンスター: 計算中...</div>
+        
         <div id="statusMessage" class="status-message">通知は実行中です。</div>
         <div class="controls">
             <button id="toggleNotifyStateButton" class="toggle-notify-button active controls-button">通知を一時停止</button>
@@ -161,11 +167,12 @@
     </div>
     
     <button id="showErinnTimeButton" class="hidden">エリン時計再表示</button>
-    <div class="app-version">v1.3</div>
+    <div class="app-version">v1.5</div>
 
     <script>
         // --- DOM要素 ---
         const erinnTimeDisplay = document.getElementById('erinnTimeDisplay');
+        const nextMonsterDisplay = document.getElementById('nextMonsterDisplay');
         const showErinnTimeButton = document.getElementById('showErinnTimeButton');
         const timeDisplay = document.getElementById('timeDisplay');
         const statusMessage = document.getElementById('statusMessage');
@@ -194,14 +201,12 @@
         const closeNotificationModalButton = document.getElementById('closeNotificationModalBtn');
         const useErinnAlarmToggle = document.getElementById('useErinnAlarmToggle');
         const erinnAlarmSettingsContainer = document.getElementById('erinnAlarmSettingsContainer');
-        // --- [MODIFIED] エリンタイム通知プルダウンのDOM要素 ---
         const erinnNotifyHour1 = document.getElementById('erinnNotifyHour1');
         const erinnNotifyMinute1 = document.getElementById('erinnNotifyMinute1');
         const erinnNotifyHour2 = document.getElementById('erinnNotifyHour2');
         const erinnNotifyMinute2 = document.getElementById('erinnNotifyMinute2');
         const erinnNotifyHour3 = document.getElementById('erinnNotifyHour3');
         const erinnNotifyMinute3 = document.getElementById('erinnNotifyMinute3');
-
 
         // --- グローバル変数 ---
         let isNotificationActive = true;
@@ -212,9 +217,139 @@
         let activeErinnNotificationTimes = [];
         let currentMasterVolume = 0.8;
         let modalAutoCloseTimeout = null;
+        let lastMonsterUpdateInfo = "";
         const DEFAULT_BACKGROUND_COLOR = '#f0f9ff';
         const REAL_SECONDS_PER_ERIN_MINUTE_SIMPLE = 1.5;
         const ERIN_MINUTES_IN_DAY_CYCLE_SIMPLE = 24 * 60;
+
+        const monsterSchedule = {
+            "月曜日": [
+                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" },
+                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" },
+                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" },
+                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" },
+                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" },
+                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" },
+                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" },
+                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" },
+                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" },
+                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" },
+                { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" },
+                { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" },
+                { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" },
+                { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" },
+                { time: "24:15", monster: "レッドドラゴン" }, { time: "24:45", monster: "巨大ワニ" },
+                { time: "25:15", monster: "レッドドラゴン" }, { time: "25:45", monster: "巨大ワニ" }
+            ],
+            "火曜日": [
+                { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" },
+                { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" },
+                { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" },
+                { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" },
+                { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" },
+                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:45", monster: "サンドワーム" },
+                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:45", monster: "サンドワーム" },
+                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:45", monster: "サンドワーム" },
+                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:45", monster: "サンドワーム" },
+                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:45", monster: "サンドワーム" },
+                { time: "20:15", monster: "プレインドラゴン" }, { time: "20:45", monster: "巨大ライオン" },
+                { time: "21:15", monster: "プレインドラゴン" }, { time: "21:45", monster: "巨大ライオン" },
+                { time: "22:15", monster: "プレインドラゴン" }, { time: "22:45", monster: "巨大ライオン" },
+                { time: "23:15", monster: "プレインドラゴン" }, { time: "23:45", monster: "巨大ライオン" },
+                { time: "24:15", monster: "プレインドラゴン" }, { time: "24:45", monster: "巨大ライオン" },
+                { time: "25:15", monster: "プレインドラゴン" }, { time: "25:45", monster: "巨大ライオン" }
+            ],
+            "水曜日": [
+                { time: "10:15", monster: "プレインドラゴン" }, { time: "10:45", monster: "巨大ライオン" },
+                { time: "11:15", monster: "プレインドラゴン" }, { time: "11:45", monster: "巨大ライオン" },
+                { time: "12:15", monster: "プレインドラゴン" }, { time: "12:45", monster: "巨大ライオン" },
+                { time: "13:15", monster: "プレインドラゴン" }, { time: "13:45", monster: "巨大ライオン" },
+                { time: "14:15", monster: "プレインドラゴン" }, { time: "14:45", monster: "巨大ライオン" },
+                { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" },
+                { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" },
+                { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" },
+                { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ" },
+                { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ" },
+                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:45", monster: "サンドワーム" },
+                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:45", monster: "サンドワーム" },
+                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:45", monster: "サンドワーム" },
+                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:45", monster: "サンドワーム" },
+                { time: "24:15", monster: "デザートドラゴン" }, { time: "24:45", monster: "サンドワーム" },
+                { time: "25:15", monster: "デザートドラゴン" }, { time: "25:45", monster: "サンドワーム" }
+            ],
+            "木曜日": [
+                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" },
+                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" },
+                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" },
+                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" },
+                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" },
+                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" },
+                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" },
+                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" },
+                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" },
+                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" },
+                { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" },
+                { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" },
+                { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" },
+                { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" },
+                { time: "24:15", monster: "レッドドラゴン" }, { time: "24:45", monster: "巨大ワニ" },
+                { time: "25:15", monster: "レッドドラゴン" }, { time: "25:45", monster: "巨大ワニ" }
+            ],
+            "金曜日": [
+                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" }, { time: "10:45", monster: "サンドワーム" },
+                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" }, { time: "11:45", monster: "サンドワーム" },
+                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" }, { time: "12:45", monster: "サンドワーム" },
+                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" }, { time: "13:45", monster: "サンドワーム" },
+                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" }, { time: "14:45", monster: "サンドワーム" },
+                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" }, { time: "15:45", monster: "サンドワーム" },
+                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" }, { time: "16:45", monster: "サンドワーム" },
+                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" }, { time: "17:45", monster: "サンドワーム" },
+                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ" }, { time: "18:45", monster: "巨大ライオン" },
+                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ" }, { time: "19:45", monster: "巨大ライオン" },
+                { time: "20:15", monster: "プレインドラゴン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" }, { time: "20:45", monster: "巨大ライオン" },
+                { time: "21:15", monster: "プレインドラゴン" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" }, { time: "21:45", monster: "巨大ライオン" },
+                { time: "22:15", monster: "プレインドラゴン" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" }, { time: "22:45", monster: "巨大ライオン" },
+                { time: "23:15", monster: "プレインドラゴン" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" }, { time: "23:45", monster: "巨大ライオン" },
+                { time: "24:15", monster: "プレインドラゴン" }, { time: "24:15", monster: "レッドドラゴン" }, { time: "24:45", monster: "巨大ワニ" }, { time: "24:45", monster: "巨大ライオン" },
+                { time: "25:15", monster: "プレインドラゴン" }, { time: "25:15", monster: "レッドドラゴン" }, { time: "25:45", monster: "巨大ワニ" }, { time: "25:45", monster: "巨大ライオン" }
+            ],
+            "土曜日": [
+                { time: "10:15", monster: "プレインドラゴン" }, { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" }, { time: "10:45", monster: "巨大ライオン" },
+                { time: "11:15", monster: "プレインドラゴン" }, { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" }, { time: "11:45", monster: "巨大ライオン" },
+                { time: "12:15", monster: "プレインドラゴン" }, { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" }, { time: "12:45", monster: "巨大ライオン" },
+                { time: "13:15", monster: "プレインドラゴン" }, { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" }, { time: "13:45", monster: "巨大ライオン" },
+                { time: "14:15", monster: "プレインドラゴン" }, { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" }, { time: "14:45", monster: "巨大ライオン" },
+                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" }, { time: "15:45", monster: "巨大ライオン" },
+                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" }, { time: "16:45", monster: "巨大ライオン" },
+                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" }, { time: "17:45", monster: "巨大ライオン" },
+                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "サンドワーム" }, { time: "18:45", monster: "巨大ライオン" },
+                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "サンドワーム" }, { time: "19:45", monster: "巨大ライオン" },
+                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:15", monster: "プレインドラゴン" }, { time: "20:45", monster: "サンドワーム" }, { time: "20:45", monster: "巨大ライオン" },
+                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:15", monster: "プレインドラゴン" }, { time: "21:45", monster: "サンドワーム" }, { time: "21:45", monster: "巨大ライオン" },
+                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:15", monster: "プレインドラゴン" }, { time: "22:45", monster: "サンドワーム" }, { time: "22:45", monster: "巨大ライオン" },
+                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:15", monster: "プレインドラゴン" }, { time: "23:45", monster: "サンドワーム" }, { time: "23:45", monster: "巨大ライオン" },
+                { time: "24:15", monster: "デザートドラゴン" }, { time: "24:15", monster: "プレインドラゴン" }, { time: "24:45", monster: "サンドワーム" }, { time: "24:45", monster: "巨大ライオン" },
+                { time: "25:15", monster: "デザートドラゴン" }, { time: "25:15", monster: "プレインドラゴン" }, { time: "25:45", monster: "サンドワーム" }, { time: "25:45", monster: "巨大ライオン" }
+            ],
+            "日曜日": [
+                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:15", monster: "プレインドラゴン" }, { time: "10:45", monster: "サンドワーム" }, { time: "10:45", monster: "巨大ライオン" },
+                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:15", monster: "プレインドラゴン" }, { time: "11:45", monster: "サンドワーム" }, { time: "11:45", monster: "巨大ライオン" },
+                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:15", monster: "プレインドラゴン" }, { time: "12:45", monster: "サンドワーム" }, { time: "12:45", monster: "巨大ライオン" },
+                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:15", monster: "プレインドラゴン" }, { time: "13:45", monster: "サンドワーム" }, { time: "13:45", monster: "巨大ライオン" },
+                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:15", monster: "プレインドラゴン" }, { time: "14:45", monster: "サンドワーム" }, { time: "14:45", monster: "巨大ライオン" },
+                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "サンドワーム" }, { time: "15:45", monster: "巨大ライオン" },
+                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "サンドワーム" }, { time: "16:45", monster: "巨大ライオン" },
+                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "サンドワーム" }, { time: "17:45", monster: "巨大ライオン" },
+                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "サンドワーム" }, { time: "18:45", monster: "巨大ワニ" },
+                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "サンドワーム" }, { time: "19:45", monster: "巨大ワニ" },
+                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "サンドワーム" }, { time: "20:45", monster: "巨大ワニ" },
+                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "サンドワーム" }, { time: "21:45", monster: "巨大ワニ" },
+                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "サンドワーム" }, { time: "22:45", monster: "巨大ワニ" },
+                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "サンドワーム" }, { time: "23:45", monster: "巨大ワニ" },
+                { time: "24:15", monster: "デザートドラゴン" }, { time: "24:15", monster: "レッドドラゴン" }, { time: "24:45", monster: "サンドワーム" }, { time: "24:45", monster: "巨大ワニ" },
+                { time: "25:15", monster: "デザートドラゴン" }, { time: "25:15", monster: "レッドドラゴン" }, { time: "25:45", monster: "サンドワーム" }, { time: "25:45", monster: "巨大ワニ" }
+            ]
+        };
 
         // --- データ保存/読込 ---
         function saveData(key,value){try{localStorage.setItem(key,value);}catch(e){console.error(`LS 保存エラー [${key}]`,e);}}
@@ -225,7 +360,6 @@
         async function initializeAudioContext(){if(Tone.context.state!=='running'){try{await Tone.start();Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);}catch(e){console.error("AudioContext開始エラー:",e);statusMessage.textContent="音声の開始に失敗。ページをクリック後、再試行してください。";}}else{if(Tone.Destination.volume){Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);}}}
 
         // --- UI更新 ---
-        // [MODIFIED] 分を選択するプルダウンを生成
         function populateMinuteSelect(selectElement) {
             if (!selectElement) return;
             selectElement.innerHTML = '';
@@ -242,7 +376,6 @@
             }
         }
         
-        // [NEW] 時を選択するプルダウンを生成
         function populateHourSelect(selectElement) {
             if (!selectElement) return;
             selectElement.innerHTML = '';
@@ -277,13 +410,11 @@
             }
         }
         
-        // [MODIFIED] 設定読込
         function loadSettings() {
             const savedTimesRaw=loadData('notificationTimesV2');
             if(savedTimesRaw){try{const tA=JSON.parse(savedTimesRaw);if(Array.isArray(tA)&&tA.length===3){notifyTime1Select.value=tA[0]||"";notifyTime2Select.value=tA[1]||"";notifyTime3Select.value=tA[2]||"";}}catch(e){console.error("LS 通知時刻解析エラー:",e);}}
             activeNotificationMinutes = parseSelectedNotificationTimes();
 
-            // エリンタイム通知 (プルダウン対応)
             const savedErinnTimesRaw = loadData('erinnNotificationTimes');
             if (savedErinnTimesRaw) {
                 try {
@@ -311,7 +442,6 @@
             useErinnAlarmToggle.checked = useErinnAlarm;
             toggleErinnAlarmUI(useErinnAlarm);
 
-            // その他設定
             currentMasterVolume=parseFloat(loadData('masterVolume'))||0.8;volumeControl.value=currentMasterVolume;volumeValueDisplay.textContent=Math.round(currentMasterVolume*100);if(Tone.context.state==='running'&&Tone.Destination.volume)Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);
             soundChoiceDropdown.value=loadData('soundChoice')||'default_beep';
             toggleCustomSoundInputVisibility();
@@ -328,7 +458,6 @@
         // --- 設定保存 ---
         function saveNotificationTimes(){const tS=[notifyTime1Select.value,notifyTime2Select.value,notifyTime3Select.value];saveData('notificationTimesV2',JSON.stringify(tS));activeNotificationMinutes=parseSelectedNotificationTimes();updateNotificationUIState(isNotificationActive);}
         
-        // [MODIFIED] エリンタイム設定保存 (プルダウン対応)
         function saveErinnNotificationTimes() {
             const formatTime = (hourEl, minEl) => {
                 const h = hourEl.value;
@@ -348,6 +477,72 @@
         // --- 時刻計算 & 更新 ---
         function getSimpleErinnTime(){const rS=(new Date()).getTime()/1000;const eTMT=Math.floor(rS/REAL_SECONDS_PER_ERIN_MINUTE_SIMPLE)%ERIN_MINUTES_IN_DAY_CYCLE_SIMPLE;const h=Math.floor(eTMT/60);const m=eTMT%60;return{hourPadded:String(h).padStart(2,'0'),minutePadded:String(m).padStart(2,'0')};}
 
+        // ▼▼▼ [MODIFIED] 次のモンスター情報更新関数を修正 ▼▼▼
+        function updateNextMonsterInfo() {
+            const now = new Date();
+            const weekdays = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+            const currentDayIndex = now.getDay();
+            
+            // 24時以降を考慮した現在時刻の補正
+            let currentHour = now.getHours();
+            let dayOffset = 0;
+            if (currentHour >= 24) {
+                dayOffset = Math.floor(currentHour / 24);
+                currentHour %= 24;
+            }
+            const actualDayIndex = (currentDayIndex + dayOffset) % 7;
+            const currentTimeStr = `${String(currentHour).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            let nextMonsterInfo = null;
+            let dayLabelPrefix = "";
+
+            // 今日のスケジュールから探す
+            const todaySchedule = monsterSchedule[weekdays[actualDayIndex]];
+            if (todaySchedule) {
+                const uniqueTodayTimes = [...new Set(todaySchedule.map(item => item.time))].sort();
+                for (const time of uniqueTodayTimes) {
+                    if (time > currentTimeStr) {
+                        const monsters = todaySchedule.filter(m => m.time === time).map(m => m.monster).join(' & ');
+                        nextMonsterInfo = { time, monster: monsters };
+                        break;
+                    }
+                }
+            }
+            
+            // 見つからなければ明日以降のスケジュールを探す
+            if (!nextMonsterInfo) {
+                for (let i = 1; i < 8; i++) {
+                    const nextDayIndex = (actualDayIndex + i) % 7;
+                    const nextDayName = weekdays[nextDayIndex];
+                    
+                    if (i === 1) dayLabelPrefix = "[明日] ";
+                    else dayLabelPrefix = `[${nextDayName}] `;
+
+                    const nextDaySchedule = monsterSchedule[nextDayName];
+                    if (nextDaySchedule && nextDaySchedule.length > 0) {
+                        const firstTime = [...new Set(nextDaySchedule.map(item => item.time))].sort()[0];
+                        const monsters = nextDaySchedule.filter(m => m.time === firstTime).map(m => m.monster).join(' & ');
+                        nextMonsterInfo = { time: firstTime, monster: monsters };
+                        break;
+                    }
+                }
+            }
+
+            // 表示を更新
+            let newMonsterInfoText;
+            if (nextMonsterInfo) {
+                newMonsterInfoText = `次: ${dayLabelPrefix}${nextMonsterInfo.time} - ${nextMonsterInfo.monster}`;
+            } else {
+                newMonsterInfoText = '次の出現情報が見つかりません。';
+            }
+            
+            if (newMonsterInfoText !== lastMonsterUpdateInfo) {
+                nextMonsterDisplay.textContent = newMonsterInfoText;
+                lastMonsterUpdateInfo = newMonsterInfoText;
+            }
+        }
+
+
         function updateTime(){
             const now = new Date();
             timeDisplay.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
@@ -355,6 +550,9 @@
             if(erinnTimeDisplayMasterToggle.checked && !erinnTimeDisplay.classList.contains('hidden')){
                 erinnTimeDisplay.textContent = `エリンタイム: ${erinnTime.hourPadded}:${erinnTime.minutePadded}`;
             }
+
+            updateNextMonsterInfo();
+
             if(isNotificationActive){
                 checkNotificationTime(now.getMinutes(), now.getSeconds());
                 if (useErinnAlarmToggle.checked) {
@@ -370,7 +568,7 @@
         // --- 設定値の解析 ---
         function parseSelectedNotificationTimes(){const t=[notifyTime1Select.value,notifyTime2Select.value,notifyTime3Select.value].map(v=>parseInt(v,10)).filter(v=>!isNaN(v)&&v>=0&&v<=59);return t.length>0?[...new Set(t)].sort((a,b)=>a-b):[];}
 
-        // --- その他UI関数 (v1.2から変更なし) ---
+        // --- その他UI関数 ---
         function playDefaultBeepSound(){const s=new Tone.Synth().toDestination();s.triggerAttackRelease("C4","0.2s");}
         function playChimeSound(){const s=new Tone.PolySynth(Tone.Synth,{oscillator:{type:"triangle8"},envelope:{attack:0.005,decay:0.1,sustain:0.3,release:1}}).toDestination();s.triggerAttackRelease(["C5","E5","G5"],"0.4s");}
         function playDigitalBlipSound(){const s=new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0,release:0.1}}).toDestination();s.triggerAttackRelease("A5","0.05s",Tone.now(),.8);s.triggerAttackRelease("D6","0.05s",Tone.now()+.07,.6);}
@@ -381,49 +579,146 @@
         function hideNotification(){if(modalAutoCloseTimeout){clearTimeout(modalAutoCloseTimeout);modalAutoCloseTimeout=null;}notificationModal.classList.remove('active');}
         function applyFontSize(s){if(!s)return;timeDisplay.style.fontSize=s;}
         function applyDarkMode(e){document.documentElement.classList.toggle('dark', e);}
-        function updateErinnTimeVisibilitySystem(mS){if(mS){const iTH=loadData('erinnTimeTempHidden')==='true';if(iTH){erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.remove('hidden');}else{erinnTimeDisplay.classList.remove('hidden');showErinnTimeButton.classList.add('hidden');}}else{erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.add('hidden');}if(mS&&!erinnTimeDisplay.classList.contains('hidden'))updateTime();}
+        function updateErinnTimeVisibilitySystem(show) { if(!show) { erinnTimeDisplay.classList.add('hidden'); showErinnTimeButton.classList.add('hidden'); } else { const isTempHidden = loadData('erinnTimeTempHidden') === 'true'; erinnTimeDisplay.classList.toggle('hidden', isTempHidden); showErinnTimeButton.classList.toggle('hidden', !isTempHidden); } }
 
         // --- イベントリスナー ---
-        openSettingsButton.addEventListener('click',()=>settingsModal.classList.add('active'));
-        closeSettingsModalButton.addEventListener('click',()=>settingsModal.classList.remove('active'));
-        fontSizeSelect.addEventListener('change',function(){applyFontSize(this.value);saveData('mainClockFontSize',this.value);});
-        darkModeToggle.addEventListener('change',function(){applyDarkMode(this.checked);saveData('darkModeEnabled',this.checked.toString());});
-        erinnTimeDisplayMasterToggle.addEventListener('change',function(){const mS=this.checked;saveData('erinnTimeMasterShow',mS.toString());updateErinnTimeVisibilitySystem(mS);});
-        erinnTimeDisplay.addEventListener('click',()=>{if(!erinnTimeDisplayMasterToggle.checked)return;erinnTimeDisplay.classList.add('hidden');showErinnTimeButton.classList.remove('hidden');saveData('erinnTimeTempHidden','true');});
-        showErinnTimeButton.addEventListener('click',()=>{if(!erinnTimeDisplayMasterToggle.checked)return;erinnTimeDisplay.classList.remove('hidden');showErinnTimeButton.classList.add('hidden');removeData('erinnTimeTempHidden');updateTime();});
-        soundChoiceDropdown.addEventListener('change',()=>{saveData('soundChoice',soundChoiceDropdown.value);toggleCustomSoundInputVisibility();});
-        volumeControl.addEventListener('input',()=>{currentMasterVolume=parseFloat(volumeControl.value);volumeValueDisplay.textContent=Math.round(currentMasterVolume*100);if(Tone.context.state==='running'&&Tone.Destination.volume)Tone.Destination.volume.value=Tone.gainToDb(currentMasterVolume);if(customAudio)customAudio.volume=currentMasterVolume;});
-        volumeControl.addEventListener('change', () => { saveData('masterVolume',currentMasterVolume.toString()); });
-        previewSoundButton.addEventListener('click',async()=>{await initializeAudioContext();if(Tone.context.state==='running'||soundChoiceDropdown.value==='use_custom_file'){playSound();}else if(Tone.context.state!=='running'){statusMessage.textContent="音声再生に失敗。ページ内をクリック後再度お試しください。";}});
-        notifyTime1Select.addEventListener('change',saveNotificationTimes);
-        notifyTime2Select.addEventListener('change',saveNotificationTimes);
-        notifyTime3Select.addEventListener('change',saveNotificationTimes);
-        // [MODIFIED] エリンタイム通知のイベントリスナーを6つのプルダウンに設定
-        [erinnNotifyHour1, erinnNotifyMinute1, erinnNotifyHour2, erinnNotifyMinute2, erinnNotifyHour3, erinnNotifyMinute3].forEach(el => {
-            el.addEventListener('change', saveErinnNotificationTimes);
-        });
-        customSoundFileInput.addEventListener('change',(e)=>{const f=e.target.files[0];if(f&&f.type.startsWith('audio/')){const r=new FileReader();r.onload=(ev)=>{if(customAudio){customAudio.pause();customAudio.src='';}customAudio=new Audio(ev.target.result);customAudio.volume=currentMasterVolume;customSoundStatus.textContent=`読込済: ${f.name}`;saveData('customSoundURL',ev.target.result);saveData('customSoundName',f.name);};r.onerror=()=>{customSoundStatus.textContent="音声読込失敗";removeData('customSoundURL');removeData('customSoundName');customAudio=null;};r.readAsDataURL(f);}else{customSoundStatus.textContent=f?"音声ファイルを選択":(soundChoiceDropdown.value==='use_custom_file'?"カスタムファイルを選択":"アプリ内蔵サウンドを選択中");removeData('customSoundURL');removeData('customSoundName');customAudio=null;}});
-        backgroundImageInput.addEventListener('change',(e)=>{const f=e.target.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=(ev)=>{document.body.style.backgroundImage=`url('${ev.target.result}')`;document.body.style.backgroundColor='';backgroundImageStatus.textContent=`背景設定: ${f.name}`;saveData('backgroundImageURL',ev.target.result);};r.onerror=()=>{backgroundImageStatus.textContent="画像読込失敗";removeData('backgroundImageURL');};r.readAsDataURL(f);}else{backgroundImageStatus.textContent=f?"画像ファイルを選択":"";if(!f)removeData('backgroundImageURL');}});
-        removeBackgroundImageButton.addEventListener('click',()=>{document.body.style.backgroundImage='';document.body.style.backgroundColor=DEFAULT_BACKGROUND_COLOR;backgroundImageInput.value='';backgroundImageStatus.textContent="背景画像を削除しました";removeData('backgroundImageURL');});
-        closeNotificationModalButton.addEventListener('click',hideNotification);
-        toggleNotifyStateButton.addEventListener('click', async () => {await initializeAudioContext();isNotificationActive = !isNotificationActive;saveData('appNotificationsPaused', (!isNotificationActive).toString());updateNotificationUIState(isNotificationActive);});
-        useErinnAlarmToggle.addEventListener('change', function() {const show = this.checked;saveData('useErinnAlarm', show.toString());toggleErinnAlarmUI(show);updateNotificationUIState(isNotificationActive);});
-
-        // --- 初期化処理 ---
         document.addEventListener('DOMContentLoaded', () => {
-            // リアルタイム通知用の分プルダウンを生成
             populateMinuteSelect(notifyTime1Select);
             populateMinuteSelect(notifyTime2Select);
             populateMinuteSelect(notifyTime3Select);
+            populateHourSelect(erinnNotifyHour1); populateMinuteSelect(erinnNotifyMinute1);
+            populateHourSelect(erinnNotifyHour2); populateMinuteSelect(erinnNotifyMinute2);
+            populateHourSelect(erinnNotifyHour3); populateMinuteSelect(erinnNotifyMinute3);
 
-            // エリンタイム通知用の時・分プルダウンを生成
-            [erinnNotifyHour1, erinnNotifyHour2, erinnNotifyHour3].forEach(populateHourSelect);
-            [erinnNotifyMinute1, erinnNotifyMinute2, erinnNotifyMinute3].forEach(populateMinuteSelect);
-            
             loadSettings();
-            setInterval(updateTime, 1000);
             updateTime();
-            console.log("ChronoChime v1.3, 準備OK。");
+            setInterval(updateTime, 1000);
+            document.body.addEventListener('click', initializeAudioContext, { once: true });
+        });
+
+        toggleNotifyStateButton.addEventListener('click', () => {
+            isNotificationActive = !isNotificationActive;
+            saveData('appNotificationsPaused', !isNotificationActive);
+            updateNotificationUIState(isNotificationActive);
+        });
+        
+        previewSoundButton.addEventListener('click', () => {
+             if(Tone.context.state !== 'running' && soundChoiceDropdown.value !== 'use_custom_file') {
+                initializeAudioContext().then(() => playSound());
+            } else {
+                playSound();
+            }
+        });
+        
+        openSettingsButton.addEventListener('click', () => settingsModal.classList.add('active'));
+        closeSettingsModalButton.addEventListener('click', () => settingsModal.classList.remove('active'));
+        window.addEventListener('click', (e) => { if (e.target === settingsModal) { settingsModal.classList.remove('active'); }});
+        
+        closeNotificationModalButton.addEventListener('click', hideNotification);
+        
+        [notifyTime1Select, notifyTime2Select, notifyTime3Select].forEach(sel => sel.addEventListener('change', saveNotificationTimes));
+        [erinnNotifyHour1, erinnNotifyMinute1, erinnNotifyHour2, erinnNotifyMinute2, erinnNotifyHour3, erinnNotifyMinute3].forEach(el => {
+            el.addEventListener('change', saveErinnNotificationTimes);
+        });
+        
+        soundChoiceDropdown.addEventListener('change', () => {
+            saveData('soundChoice', soundChoiceDropdown.value);
+            toggleCustomSoundInputVisibility();
+        });
+
+        customSoundFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                try {
+                    customAudio = new Audio(url);
+                    customAudio.volume = currentMasterVolume;
+                    customSoundStatus.textContent = `読込済: ${file.name}`;
+                    saveData('customSoundURL', url);
+                    saveData('customSoundName', file.name);
+                } catch(err) {
+                    customSoundStatus.textContent = 'エラー: ファイル読込に失敗';
+                }
+            }
+        });
+        
+        volumeControl.addEventListener('input', (e) => {
+            currentMasterVolume = parseFloat(e.target.value);
+            volumeValueDisplay.textContent = Math.round(currentMasterVolume * 100);
+        });
+        volumeControl.addEventListener('change', () => {
+            saveData('masterVolume', currentMasterVolume);
+            if(Tone.context.state === 'running' && Tone.Destination.volume) Tone.Destination.volume.value = Tone.gainToDb(currentMasterVolume);
+        });
+
+        backgroundImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imageUrl = event.target.result;
+                    document.body.style.backgroundImage = `url('${imageUrl}')`;
+                    document.body.style.backgroundColor = '';
+                    backgroundImageStatus.textContent = `読込済: ${file.name}`;
+                    saveData('backgroundImageURL', imageUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeBackgroundImageButton.addEventListener('click', () => {
+            document.body.style.backgroundImage = '';
+            document.body.style.backgroundColor = document.documentElement.classList.contains('dark') ? '#1f2937' : DEFAULT_BACKGROUND_COLOR;
+            removeData('backgroundImageURL');
+            backgroundImageStatus.textContent = "";
+            backgroundImageInput.value = "";
+        });
+
+        fontSizeSelect.addEventListener('change', (e) => {
+            applyFontSize(e.target.value);
+            saveData('mainClockFontSize', e.target.value);
+        });
+        
+        darkModeToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            applyDarkMode(enabled);
+            saveData('darkModeEnabled', enabled);
+            if (!document.body.style.backgroundImage) {
+                 document.body.style.backgroundColor = enabled ? '#1f2937' : DEFAULT_BACKGROUND_COLOR;
+            }
+        });
+
+        useErinnAlarmToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            toggleErinnAlarmUI(enabled);
+            saveData('useErinnAlarm', enabled);
+            updateNotificationUIState(isNotificationActive);
+        });
+        
+        erinnTimeDisplayMasterToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            updateErinnTimeVisibilitySystem(enabled);
+            saveData('erinnTimeMasterShow', enabled);
+            if(enabled) {
+                updateTime(); // 再表示時に即時更新
+            } else {
+                erinnTimeDisplay.textContent = "";
+            }
+        });
+        
+        erinnTimeDisplay.addEventListener('click', () => {
+            if (erinnTimeDisplayMasterToggle.checked) {
+                erinnTimeDisplay.classList.add('hidden');
+                showErinnTimeButton.classList.remove('hidden');
+                saveData('erinnTimeTempHidden', 'true');
+            }
+        });
+
+        showErinnTimeButton.addEventListener('click', () => {
+            erinnTimeDisplay.classList.remove('hidden');
+            showErinnTimeButton.classList.add('hidden');
+            removeData('erinnTimeTempHidden');
+            updateTime(); // 再表示時に即時更新
         });
     </script>
 </body>
