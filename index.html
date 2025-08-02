@@ -242,135 +242,17 @@
         const REAL_SECONDS_PER_ERIN_MINUTE_SIMPLE = 1.5;
         const ERIN_MINUTES_IN_DAY_CYCLE_SIMPLE = 24 * 60;
 
-        // ▼▼▼ [MODIFIED] モンスター出現データの時刻を正規化 ▼▼▼
         const monsterSchedule = {
-            "月曜日": [
-                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" },
-                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" },
-                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" },
-                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" },
-                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" },
-                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" },
-                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" },
-                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" },
-                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" },
-                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" },
-                { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" },
-                { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" },
-                { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" },
-                { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" }
-            ],
-            "火曜日": [
-                { time: "00:15", monster: "レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ" }, // 元 24:15, 24:45
-                { time: "01:15", monster: "レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ" }, // 元 25:15, 25:45
-                { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" },
-                { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" },
-                { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" },
-                { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" },
-                { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" },
-                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:45", monster: "サンドワーム" },
-                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:45", monster: "サンドワーム" },
-                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:45", monster: "サンドワーム" },
-                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:45", monster: "サンドワーム" },
-                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:45", monster: "サンドワーム" },
-                { time: "20:15", monster: "プレインドラゴン" }, { time: "20:45", monster: "巨大ライオン" },
-                { time: "21:15", monster: "プレインドラゴン" }, { time: "21:45", monster: "巨大ライオン" },
-                { time: "22:15", monster: "プレインドラゴン" }, { time: "22:45", monster: "巨大ライオン" },
-                { time: "23:15", monster: "プレインドラゴン" }, { time: "23:45", monster: "巨大ライオン" }
-            ],
-            "水曜日": [
-                { time: "00:15", monster: "プレインドラゴン" }, { time: "00:45", monster: "巨大ライオン" },
-                { time: "01:15", monster: "プレインドラゴン" }, { time: "01:45", monster: "巨大ライオン" },
-                { time: "10:15", monster: "プレインドラゴン" }, { time: "10:45", monster: "巨大ライオン" },
-                { time: "11:15", monster: "プレインドラゴン" }, { time: "11:45", monster: "巨大ライオン" },
-                { time: "12:15", monster: "プレインドラゴン" }, { time: "12:45", monster: "巨大ライオン" },
-                { time: "13:15", monster: "プレインドラゴン" }, { time: "13:45", monster: "巨大ライオン" },
-                { time: "14:15", monster: "プレインドラゴン" }, { time: "14:45", monster: "巨大ライオン" },
-                { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" },
-                { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" },
-                { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" },
-                { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ" },
-                { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ" },
-                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:45", monster: "サンドワーム" },
-                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:45", monster: "サンドワーム" },
-                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:45", monster: "サンドワーム" },
-                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:45", monster: "サンドワーム" }
-            ],
-            "木曜日": [
-                { time: "00:15", monster: "デザートドラゴン" }, { time: "00:45", monster: "サンドワーム" },
-                { time: "01:15", monster: "デザートドラゴン" }, { time: "01:45", monster: "サンドワーム" },
-                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" },
-                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" },
-                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" },
-                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" },
-                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" },
-                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" },
-                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" },
-                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" },
-                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" },
-                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" },
-                { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" },
-                { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" },
-                { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" },
-                { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" }
-            ],
-            "金曜日": [
-                { time: "00:15", monster: "レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ" },
-                { time: "01:15", monster: "レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ" },
-                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" }, { time: "10:45", monster: "サンドワーム" },
-                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" }, { time: "11:45", monster: "サンドワーム" },
-                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" }, { time: "12:45", monster: "サンドワーム" },
-                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" }, { time: "13:45", monster: "サンドワーム" },
-                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" }, { time: "14:45", monster: "サンドワーム" },
-                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" }, { time: "15:45", monster: "サンドワーム" },
-                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" }, { time: "16:45", monster: "サンドワーム" },
-                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" }, { time: "17:45", monster: "サンドワーム" },
-                { time: "18:15", monster: "プレインドラゴン" }, { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ" }, { time: "18:45", monster: "巨大ライオン" },
-                { time: "19:15", monster: "プレインドラゴン" }, { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ" }, { time: "19:45", monster: "巨大ライオン" },
-                { time: "20:15", monster: "プレインドラゴン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" }, { time: "20:45", monster: "巨大ライオン" },
-                { time: "21:15", monster: "プレインドラゴン" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" }, { time: "21:45", monster: "巨大ライオン" },
-                { time: "22:15", monster: "プレインドラゴン" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" }, { time: "22:45", monster: "巨大ライオン" },
-                { time: "23:15", monster: "プレインドラゴン" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" }, { time: "23:45", monster: "巨大ライオン" }
-            ],
-            "土曜日": [
-                { time: "00:15", monster: "プレインドラゴン" }, { time: "00:15", monster: "レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ" }, { time: "00:45", monster: "巨大ライオン" },
-                { time: "01:15", monster: "プレインドラゴン" }, { time: "01:15", monster: "レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ" }, { time: "01:45", monster: "巨大ライオン" },
-                { time: "10:15", monster: "プレインドラゴン" }, { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" }, { time: "10:45", monster: "巨大ライオン" },
-                { time: "11:15", monster: "プレインドラゴン" }, { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" }, { time: "11:45", monster: "巨大ライオン" },
-                { time: "12:15", monster: "プレインドラゴン" }, { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" }, { time: "12:45", monster: "巨大ライオン" },
-                { time: "13:15", monster: "プレインドラゴン" }, { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" }, { time: "13:45", monster: "巨大ライオン" },
-                { time: "14:15", monster: "プレインドラゴン" }, { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" }, { time: "14:45", monster: "巨大ライオン" },
-                { time: "15:15", monster: "プレインドラゴン" }, { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" }, { time: "15:45", monster: "巨大ライオン" },
-                { time: "16:15", monster: "プレインドラゴン" }, { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" }, { time: "16:45", monster: "巨大ライオン" },
-                { time: "17:15", monster: "プレインドラゴン" }, { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" }, { time: "17:45", monster: "巨大ライオン" },
-                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "サンドワーム" }, { time: "18:45", monster: "巨大ライオン" },
-                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "サンドワーム" }, { time: "19:45", monster: "巨大ライオン" },
-                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:15", monster: "プレインドラゴン" }, { time: "20:45", monster: "サンドワーム" }, { time: "20:45", monster: "巨大ライオン" },
-                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:15", monster: "プレインドラゴン" }, { time: "21:45", monster: "サンドワーム" }, { time: "21:45", monster: "巨大ライオン" },
-                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:15", monster: "プレインドラゴン" }, { time: "22:45", monster: "サンドワーム" }, { time: "22:45", monster: "巨大ライオン" },
-                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:15", monster: "プレインドラゴン" }, { time: "23:45", monster: "サンドワーム" }, { time: "23:45", monster: "巨大ライオン" }
-            ],
-            "日曜日": [
-                { time: "00:15", monster: "デザートドラゴン" }, { time: "00:15", monster: "プレインドラゴン" }, { time: "00:45", monster: "サンドワーム" }, { time: "00:45", monster: "巨大ライオン" },
-                { time: "01:15", monster: "デザートドラゴン" }, { time: "01:15", monster: "プレインドラゴン" }, { time: "01:45", monster: "サンドワーム" }, { time: "01:45", monster: "巨大ライオン" },
-                { time: "10:15", monster: "デザートドラゴン" }, { time: "10:15", monster: "プレインドラゴン" }, { time: "10:45", monster: "サンドワーム" }, { time: "10:45", monster: "巨大ライオン" },
-                { time: "11:15", monster: "デザートドラゴン" }, { time: "11:15", monster: "プレインドラゴン" }, { time: "11:45", monster: "サンドワーム" }, { time: "11:45", monster: "巨大ライオン" },
-                { time: "12:15", monster: "デザートドラゴン" }, { time: "12:15", monster: "プレインドラゴン" }, { time: "12:45", monster: "サンドワーム" }, { time: "12:45", monster: "巨大ライオン" },
-                { time: "13:15", monster: "デザートドラゴン" }, { time: "13:15", monster: "プレインドラゴン" }, { time: "13:45", monster: "サンドワーム" }, { time: "13:45", monster: "巨大ライオン" },
-                { time: "14:15", monster: "デザートドラゴン" }, { time: "14:15", monster: "プレインドラゴン" }, { time: "14:45", monster: "サンドワーム" }, { time: "14:45", monster: "巨大ライオン" },
-                { time: "15:15", monster: "デザートドラゴン" }, { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "サンドワーム" }, { time: "15:45", monster: "巨大ライオン" },
-                { time: "16:15", monster: "デザートドラゴン" }, { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "サンドワーム" }, { time: "16:45", monster: "巨大ライオン" },
-                { time: "17:15", monster: "デザートドラゴン" }, { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "サンドワーム" }, { time: "17:45", monster: "巨大ライオン" },
-                { time: "18:15", monster: "デザートドラゴン" }, { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "サンドワーム" }, { time: "18:45", monster: "巨大ワニ" },
-                { time: "19:15", monster: "デザートドラゴン" }, { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "サンドワーム" }, { time: "19:45", monster: "巨大ワニ" },
-                { time: "20:15", monster: "デザートドラゴン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "サンドワーム" }, { time: "20:45", monster: "巨大ワニ" },
-                { time: "21:15", monster: "デザートドラゴン" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "サンドワーム" }, { time: "21:45", monster: "巨大ワニ" },
-                { time: "22:15", monster: "デザートドラゴン" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "サンドワーム" }, { time: "22:45", monster: "巨大ワニ" },
-                { time: "23:15", monster: "デザートドラゴン" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "サンドワーム" }, { time: "23:45", monster: "巨大ワニ" }
-            ]
+            "月曜日": [ { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" }, { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" }, { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" }, { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" }, { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" }, { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" }, { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" }, { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" }, { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" }, { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" } ],
+            "火曜日": [ { time: "00:15", monster: "レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ" }, { time: "01:15", monster: "レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ" }, { time: "10:15", monster: "レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ" }, { time: "11:15", monster: "レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ" }, { time: "12:15", monster: "レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ" }, { time: "13:15", monster: "レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ" }, { time: "14:15", monster: "レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ" }, { time: "15:15", monster: "デザートドラゴン" }, { time: "15:45", monster: "サンドワーム" }, { time: "16:15", monster: "デザートドラゴン" }, { time: "16:45", monster: "サンドワーム" }, { time: "17:15", monster: "デザートドラゴン" }, { time: "17:45", monster: "サンドワーム" }, { time: "18:15", monster: "デザートドラゴン" }, { time: "18:45", monster: "サンドワーム" }, { time: "19:15", monster: "デザートドラゴン" }, { time: "19:45", monster: "サンドワーム" }, { time: "20:15", monster: "プレインドラゴン" }, { time: "20:45", monster: "巨大ライオン" }, { time: "21:15", monster: "プレインドラゴン" }, { time: "21:45", monster: "巨大ライオン" }, { time: "22:15", monster: "プレインドラゴン" }, { time: "22:45", monster: "巨大ライオン" }, { time: "23:15", monster: "プレインドラゴン" }, { time: "23:45", monster: "巨大ライオン" } ],
+            "水曜日": [ { time: "00:15", monster: "プレインドラゴン" }, { time: "00:45", monster: "巨大ライオン" }, { time: "01:15", monster: "プレインドラゴン" }, { time: "01:45", monster: "巨大ライオン" }, { time: "10:15", monster: "プレインドラゴン" }, { time: "10:45", monster: "巨大ライオン" }, { time: "11:15", monster: "プレインドラゴン" }, { time: "11:45", monster: "巨大ライオン" }, { time: "12:15", monster: "プレインドラゴン" }, { time: "12:45", monster: "巨大ライオン" }, { time: "13:15", monster: "プレインドラゴン" }, { time: "13:45", monster: "巨大ライオン" }, { time: "14:15", monster: "プレインドラゴン" }, { time: "14:45", monster: "巨大ライオン" }, { time: "15:15", monster: "レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ" }, { time: "16:15", monster: "レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ" }, { time: "17:15", monster: "レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ" }, { time: "18:15", monster: "レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ" }, { time: "19:15", monster: "レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ" }, { time: "20:15", monster: "デザートドラゴン" }, { time: "20:45", monster: "サンドワーム" }, { time: "21:15", monster: "デザートドラゴン" }, { time: "21:45", monster: "サンドワーム" }, { time: "22:15", monster: "デザートドラゴン" }, { time: "22:45", monster: "サンドワーム" }, { time: "23:15", monster: "デザートドラゴン" }, { time: "23:45", monster: "サンドワーム" } ],
+            "木曜日": [ { time: "00:15", monster: "デザートドラゴン" }, { time: "00:45", monster: "サンドワーム" }, { time: "01:15", monster: "デザートドラゴン" }, { time: "01:45", monster: "サンドワーム" }, { time: "10:15", monster: "デザートドラゴン" }, { time: "10:45", monster: "サンドワーム" }, { time: "11:15", monster: "デザートドラゴン" }, { time: "11:45", monster: "サンドワーム" }, { time: "12:15", monster: "デザートドラゴン" }, { time: "12:45", monster: "サンドワーム" }, { time: "13:15", monster: "デザートドラゴン" }, { time: "13:45", monster: "サンドワーム" }, { time: "14:15", monster: "デザートドラゴン" }, { time: "14:45", monster: "サンドワーム" }, { time: "15:15", monster: "プレインドラゴン" }, { time: "15:45", monster: "巨大ライオン" }, { time: "16:15", monster: "プレインドラゴン" }, { time: "16:45", monster: "巨大ライオン" }, { time: "17:15", monster: "プレインドラゴン" }, { time: "17:45", monster: "巨大ライオン" }, { time: "18:15", monster: "プレインドラゴン" }, { time: "18:45", monster: "巨大ライオン" }, { time: "19:15", monster: "プレインドラゴン" }, { time: "19:45", monster: "巨大ライオン" }, { time: "20:15", monster: "レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ" }, { time: "21:15", monster: "レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ" }, { time: "22:15", monster: "レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ" }, { time: "23:15", monster: "レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ" } ],
+            "金曜日": [ { time: "00:15", monster: "レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ" }, { time: "01:15", monster: "レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ" }, { time: "10:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ & サンドワーム" }, { time: "11:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ & サンドワーム" }, { time: "12:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ & サンドワーム" }, { time: "13:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ & サンドワーム" }, { time: "14:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ & サンドワーム" }, { time: "15:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ & サンドワーム" }, { time: "16:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ & サンドワーム" }, { time: "17:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ & サンドワーム" }, { time: "18:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "18:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "19:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "19:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "20:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "20:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "21:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "21:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "22:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "22:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "23:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "23:45", monster: "巨大ワニ & 巨大ライオン" } ],
+            "土曜日": [ { time: "00:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "00:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "01:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "01:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "10:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "10:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "11:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "11:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "12:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "12:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "13:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "13:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "14:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "14:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "15:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "15:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "16:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "16:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "17:15", monster: "プレインドラゴン & レッドドラゴン" }, { time: "17:45", monster: "巨大ワニ & 巨大ライオン" }, { time: "18:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "18:45", monster: "サンドワーム & 巨大ライオン" }, { time: "19:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "19:45", monster: "サンドワーム & 巨大ライオン" }, { time: "20:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "20:45", monster: "サンドワーム & 巨大ライオン" }, { time: "21:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "21:45", monster: "サンドワーム & 巨大ライオン" }, { time: "22:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "22:45", monster: "サンドワーム & 巨大ライオン" }, { time: "23:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "23:45", monster: "サンドワーム & 巨大ライオン" } ],
+            "日曜日": [ { time: "00:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "00:45", monster: "サンドワーム & 巨大ライオン" }, { time: "01:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "01:45", monster: "サンドワーム & 巨大ライオン" }, { time: "10:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "10:45", monster: "サンドワーム & 巨大ライオン" }, { time: "11:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "11:45", monster: "サンドワーム & 巨大ライオン" }, { time: "12:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "12:45", monster: "サンドワーム & 巨大ライオン" }, { time: "13:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "13:45", monster: "サンドワーム & 巨大ライオン" }, { time: "14:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "14:45", monster: "サンドワーム & 巨大ライオン" }, { time: "15:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "15:45", monster: "サンドワーム & 巨大ライオン" }, { time: "16:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "16:45", monster: "サンドワーム & 巨大ライオン" }, { time: "17:15", monster: "デザートドラゴン & プレインドラゴン" }, { time: "17:45", monster: "サンドワーム & 巨大ライオン" }, { time: "18:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "18:45", monster: "サンドワーム & 巨大ワニ" }, { time: "19:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "19:45", monster: "サンドワーム & 巨大ワニ" }, { time: "20:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "20:45", monster: "サンドワーム & 巨大ワニ" }, { time: "21:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "21:45", monster: "サンドワーム & 巨大ワニ" }, { time: "22:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "22:45", monster: "サンドワーム & 巨大ワニ" }, { time: "23:15", monster: "デザートドラゴン & レッドドラゴン" }, { time: "23:45", monster: "サンドワーム & 巨大ワニ" } ]
         };
 
-         // --- データ保存/読込 ---
+        // --- データ保存/読込 ---
         function saveData(key,value){try{localStorage.setItem(key,value);}catch(e){console.error(`LS 保存エラー [${key}]`,e);}}
         function loadData(key){return localStorage.getItem(key);}
         function removeData(key){localStorage.removeItem(key);}
